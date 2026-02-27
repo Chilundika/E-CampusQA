@@ -1,0 +1,319 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
+import { Event } from '@/lib/types';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import {
+    Plus, LogOut, Calendar, Users, Trash2, Eye, Loader2,
+    AlertTriangle, X, CheckCircle2,
+} from 'lucide-react';
+
+const typeLabels: Record<string, string> = {
+    orientation: 'Orientation',
+    tutorial: 'Tutorial',
+    live_qa: 'Live Q&A',
+};
+
+export default function AdminDashboard() {
+    const router = useRouter();
+    const [events, setEvents] = useState<(Event & { registration_count: number })[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [userId, setUserId] = useState<string | null>(null);
+
+    // Delete modal state
+    const [deleteTarget, setDeleteTarget] = useState<(Event & { registration_count: number }) | null>(null);
+    const [deleting, setDeleting] = useState(false);
+
+    // Toast state
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+    const showToast = useCallback((message: string, type: 'success' | 'error') => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 3500);
+    }, []);
+
+    useEffect(() => {
+        checkAuth();
+    }, []);
+
+    async function checkAuth() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            router.push('/admin/login');
+            return;
+        }
+        setUserId(user.id);
+        fetchEvents();
+    }
+
+    async function fetchEvents() {
+        const { data, error } = await supabase
+            .from('events')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error(error);
+            setLoading(false);
+            return;
+        }
+
+        const eventsWithCounts = await Promise.all(
+            (data || []).map(async (event: Event) => {
+                const { count } = await supabase
+                    .from('registrations')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('event_id', event.id);
+                return { ...event, registration_count: count || 0 };
+            })
+        );
+
+        setEvents(eventsWithCounts);
+        setLoading(false);
+    }
+
+    async function handleDeleteConfirm() {
+        if (!deleteTarget) return;
+        setDeleting(true);
+        const { error } = await supabase.from('events').delete().eq('id', deleteTarget.id);
+        setDeleting(false);
+
+        if (error) {
+            console.error('Delete failed:', error);
+            showToast('Failed to delete event. Please try again.', 'error');
+            setDeleteTarget(null);
+            return;
+        }
+
+        setEvents((prev) => prev.filter((e) => e.id !== deleteTarget.id));
+        setDeleteTarget(null);
+        showToast('Event deleted successfully.', 'success');
+    }
+
+    async function handleLogout() {
+        await supabase.auth.signOut();
+        router.push('/admin/login');
+    }
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-[60vh]">
+                <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+            </div>
+        );
+    }
+
+    return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            {/* ── Toast Notification ── */}
+            {toast && (
+                <div className={`toast-notification ${toast.type === 'success' ? 'toast-success' : 'toast-error'
+                    }`}>
+                    {toast.type === 'success'
+                        ? <CheckCircle2 className="w-5 h-5 shrink-0" />
+                        : <AlertTriangle className="w-5 h-5 shrink-0" />
+                    }
+                    <span>{toast.message}</span>
+                    <button onClick={() => setToast(null)} className="ml-auto p-1 hover:opacity-70 transition">
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
+
+            {/* ── Delete Confirmation Modal ── */}
+            {deleteTarget && (
+                <div className="modal-overlay" onClick={() => !deleting && setDeleteTarget(null)}>
+                    <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-red-500/15">
+                                <AlertTriangle className="w-5 h-5 text-red-400" />
+                            </div>
+                            <h2 className="text-lg font-bold text-gray-900">Delete Event</h2>
+                        </div>
+
+                        <p className="text-gray-600 mb-2">
+                            Are you sure you want to delete <strong className="text-gray-900">{deleteTarget.title}</strong>?
+                        </p>
+                        <p className="text-sm text-gray-500 mb-6">
+                            This will permanently remove the event and{' '}
+                            <span className="text-red-400 font-semibold">
+                                {deleteTarget.registration_count} registration{deleteTarget.registration_count !== 1 ? 's' : ''}
+                            </span>.
+                            This action cannot be undone.
+                        </p>
+
+                        <div className="flex items-center justify-end gap-3">
+                            <button
+                                onClick={() => setDeleteTarget(null)}
+                                disabled={deleting}
+                                className="btn-secondary text-sm"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDeleteConfirm}
+                                disabled={deleting}
+                                className="btn-danger flex items-center gap-2 text-sm"
+                            >
+                                {deleting ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        Deleting…
+                                    </>
+                                ) : (
+                                    <>
+                                        <Trash2 className="w-4 h-4" />
+                                        Delete Event
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
+                <div>
+                    <h1 className="text-3xl font-black text-gray-900">Admin Dashboard</h1>
+                    <p className="text-gray-500 text-sm mt-1">Manage events and registrations</p>
+                </div>
+                <div className="flex gap-3">
+                    <Link href="/admin/events/new" className="btn-primary flex items-center gap-2">
+                        <Plus className="w-4 h-4" />
+                        New Event
+                    </Link>
+                    <button onClick={handleLogout} className="btn-secondary flex items-center gap-2">
+                        <LogOut className="w-4 h-4" />
+                        Sign Out
+                    </button>
+                </div>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+                <div className="glass-card p-5">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-500/10">
+                            <Calendar className="w-5 h-5 text-blue-400" />
+                        </div>
+                        <div>
+                            <p className="text-2xl font-bold text-gray-900">{events.length}</p>
+                            <p className="text-sm text-gray-500">Total Events</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="glass-card p-5">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-green-500/10">
+                            <Users className="w-5 h-5 text-green-400" />
+                        </div>
+                        <div>
+                            <p className="text-2xl font-bold text-gray-900">
+                                {events.reduce((acc, e) => acc + e.registration_count, 0)}
+                            </p>
+                            <p className="text-sm text-gray-500">Total Registrations</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="glass-card p-5">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500/10">
+                            <Users className="w-5 h-5 text-amber-400" />
+                        </div>
+                        <div>
+                            <p className="text-2xl font-bold text-gray-900">
+                                {events.filter(e => e.registration_count >= e.max_capacity).length}
+                            </p>
+                            <p className="text-sm text-gray-500">Full Events</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Events Table */}
+            {events.length === 0 ? (
+                <div className="glass-card p-12 text-center">
+                    <div className="text-5xl mb-4">📅</div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">No Events Created</h3>
+                    <p className="text-gray-500 mb-6">Create your first event to get started.</p>
+                    <Link href="/admin/events/new" className="btn-primary inline-flex items-center gap-2">
+                        <Plus className="w-4 h-4" />
+                        Create Event
+                    </Link>
+                </div>
+            ) : (
+                <div className="glass-card overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Type</th>
+                                    <th>Date</th>
+                                    <th>Capacity</th>
+                                    <th>Status</th>
+                                    <th className="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {events.map((event) => {
+                                    const isFull = event.registration_count >= event.max_capacity;
+                                    return (
+                                        <tr key={event.id}>
+                                            <td className="font-medium text-gray-900">{event.title}</td>
+                                            <td>
+                                                <span className={`badge badge-${event.type}`}>
+                                                    {typeLabels[event.type]}
+                                                </span>
+                                            </td>
+                                            <td className="text-sm">
+                                                {event.event_date
+                                                    ? new Date(event.event_date).toLocaleDateString('en-US', {
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        year: 'numeric',
+                                                    })
+                                                    : '—'}
+                                            </td>
+                                            <td>
+                                                <span className="text-gray-900 font-medium">{event.registration_count}</span>
+                                                <span className="text-gray-400"> / {event.max_capacity}</span>
+                                            </td>
+                                            <td>
+                                                {isFull ? (
+                                                    <span className="badge bg-red-500/15 text-red-400 border border-red-500/30">Full</span>
+                                                ) : (
+                                                    <span className="badge bg-green-500/15 text-green-400 border border-green-500/30">Open</span>
+                                                )}
+                                            </td>
+                                            <td>
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <Link
+                                                        href={`/admin/events/${event.id}`}
+                                                        className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition"
+                                                        title="View Registrations"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                    </Link>
+                                                    <button
+                                                        onClick={() => setDeleteTarget(event)}
+                                                        className="p-2 rounded-lg hover:bg-red-500/10 text-gray-500 hover:text-red-400 transition"
+                                                        title="Delete Event"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}

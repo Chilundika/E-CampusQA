@@ -1,0 +1,100 @@
+'use client';
+
+import Link from 'next/link';
+import { Calendar, Users, ArrowRight } from 'lucide-react';
+import { Event } from '@/lib/types';
+
+const typeLabels: Record<string, string> = {
+    orientation: 'Orientation',
+    tutorial: 'Tutorial',
+    live_qa: 'Live Q&A',
+};
+
+interface EventCardProps {
+    event: Event;
+    registrationCount: number;
+}
+
+export default function EventCard({ event, registrationCount }: EventCardProps) {
+    const isFull = registrationCount >= event.max_capacity;
+    const capacityPercent = Math.min((registrationCount / event.max_capacity) * 100, 100);
+    const capacityClass = capacityPercent >= 100 ? 'full' : capacityPercent >= 80 ? 'warning' : '';
+
+    return (
+        <div className="glass-card p-6 flex flex-col gap-4 animate-fade-in">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                    <span className={`badge badge-${event.type}`}>
+                        {typeLabels[event.type] || event.type}
+                    </span>
+                    <h3 className="text-xl font-bold text-gray-900 mt-2 leading-tight">
+                        {event.title}
+                    </h3>
+                </div>
+            </div>
+
+            {/* Description */}
+            {event.description && (
+                <p className="text-sm text-gray-500 leading-relaxed line-clamp-2">
+                    {event.description}
+                </p>
+            )}
+
+            {/* Date */}
+            {event.event_date && (
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <Calendar className="w-4 h-4" />
+                    <span>
+                        {new Date(event.event_date).toLocaleDateString('en-US', {
+                            weekday: 'short',
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                        })}
+                    </span>
+                </div>
+            )}
+
+            {/* Capacity Bar */}
+            <div>
+                <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                        <Users className="w-4 h-4" />
+                        <span>{registrationCount} / {event.max_capacity}</span>
+                    </div>
+                    {isFull && (
+                        <span className="text-xs font-semibold text-red-400">FULL</span>
+                    )}
+                </div>
+                <div className="capacity-bar">
+                    <div
+                        className={`capacity-fill ${capacityClass}`}
+                        style={{ width: `${capacityPercent}%` }}
+                    />
+                </div>
+            </div>
+
+            {/* CTA */}
+            <Link
+                href={isFull ? '#' : `/events/${event.id}`}
+                className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm transition-all duration-300 ${isFull
+                        ? 'bg-slate-800/50 text-gray-400 cursor-not-allowed'
+                        : 'btn-primary'
+                    }`}
+                onClick={(e) => isFull && e.preventDefault()}
+            >
+                {isFull ? (
+                    'Event has reached its participant limit'
+                ) : (
+                    <>
+                        Register Now
+                        <ArrowRight className="w-4 h-4" />
+                    </>
+                )}
+            </Link>
+        </div>
+    );
+}
