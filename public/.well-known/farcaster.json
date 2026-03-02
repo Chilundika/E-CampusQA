@@ -9,10 +9,10 @@
         "name": "CampusQA",
         "subtitle": "Campus Event Registration",
         "description": "Register for campus events: Orientations, Tutorials, and Live Q&As.",
-        "iconUrl": "https://chresoqa.vercel.app/logo.png",
-        "splashImageUrl": "https://chresoqa.vercel.app/logo.png",
+        "iconUrl": "https://e-campusqa.vercel.app/logo.png",
+        "splashImageUrl": "https://e-campusqa.vercel.app/logo.png",
         "splashBackgroundColor": "#00A65A",
-        "homeUrl": "https://chresoqa.vercel.app",
-        "imageUrl": "https://chresoqa.vercel.app/logo.png"
+        "homeUrl": "https://e-campusqa.vercel.app",
+        "imageUrl": "https://e-campusqa.vercel.app/logo.png"
     }
 }

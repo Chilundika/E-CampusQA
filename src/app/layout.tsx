@@ -4,14 +4,14 @@ import Navbar from "@/components/Navbar";
 
 const miniAppEmbed = JSON.stringify({
   version: "1",
-  imageUrl: "https://chresoqa.vercel.app/logo.png",
+  imageUrl: "https://e-campusqa.vercel.app/logo.png",
   button: {
     title: "Register for Events",
     action: {
       type: "launch_miniapp",
       name: "CampusQA",
-      url: "https://chresoqa.vercel.app",
-      splashImageUrl: "https://chresoqa.vercel.app/logo.png",
+      url: "https://e-campusqa.vercel.app",
+      splashImageUrl: "https://e-campusqa.vercel.app/logo.png",
       splashBackgroundColor: "#00A65A",
     },
   },
@@ -19,14 +19,14 @@ const miniAppEmbed = JSON.stringify({
 
 const frameEmbed = JSON.stringify({
   version: "1",
-  imageUrl: "https://chresoqa.vercel.app/logo.png",
+  imageUrl: "https://e-campusqa.vercel.app/logo.png",
   button: {
     title: "Register for Events",
     action: {
       type: "launch_frame",
       name: "CampusQA",
-      url: "https://chresoqa.vercel.app",
-      splashImageUrl: "https://chresoqa.vercel.app/logo.png",
+      url: "https://e-campusqa.vercel.app",
+      splashImageUrl: "https://e-campusqa.vercel.app/logo.png",
       splashBackgroundColor: "#00A65A",
     },
   },
