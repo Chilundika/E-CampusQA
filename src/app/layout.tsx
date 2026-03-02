@@ -32,18 +32,33 @@ const frameEmbed = JSON.stringify({
   },
 });
 
-export const metadata: Metadata = {
-  title: "CampusQA — Event Registration",
-  description: "Register for campus events: Orientations, Tutorials, and Live Q&As. Built for students, powered by modern tech.",
-  icons: {
-    icon: "/favicon.ico",
-  },
-  other: {
-    "fc:miniapp": miniAppEmbed,
-    "fc:frame": frameEmbed,
-    "base:app_id": "69a6041ba0fdf68983d307c1",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: "CampusQA — Event Registration",
+    description: "Register for campus events: Orientations, Tutorials, and Live Q&As. Built for students, powered by modern tech.",
+    icons: {
+      icon: "/favicon.ico",
+    },
+    other: {
+      "fc:miniapp": JSON.stringify({
+        version: 'next',
+        imageUrl: 'https://e-campusqa.vercel.app/logo.png',
+        button: {
+          title: `Launch E-CampusQA`,
+          action: {
+            type: 'launch_miniapp',
+            name: 'E-CampusQA',
+            url: 'https://e-campusqa.vercel.app',
+            splashImageUrl: 'https://e-campusqa.vercel.app/logo.png',
+            splashBackgroundColor: '#000000',
+          },
+        },
+      }),
+      "fc:frame": frameEmbed,
+      "base:app_id": "69a6041ba0fdf68983d307c1",
+    },
+  };
+}
 
 export default function RootLayout({
   children,
