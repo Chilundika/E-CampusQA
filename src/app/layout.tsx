@@ -40,7 +40,7 @@ export async function generateMetadata(): Promise<Metadata> {
       icon: "/favicon.ico",
     },
     other: {
-      "fc:miniapp": JSON.stringify({
+      'fc:miniapp': JSON.stringify({
         version: 'next',
         imageUrl: 'https://e-campusqa.vercel.app/logo.png',
         button: {
