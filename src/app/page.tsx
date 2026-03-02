@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { sdk } from '@farcaster/miniapp-sdk';
 import { supabase } from '@/lib/supabase';
 import { Event } from '@/lib/types';
 import EventCard from '@/components/EventCard';
@@ -44,6 +45,7 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchEvents();
+    sdk.actions.ready();
   }, []);
 
   async function fetchEvents() {

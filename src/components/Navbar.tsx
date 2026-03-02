@@ -32,7 +32,7 @@ export default function Navbar() {
                     <div className="flex items-center gap-1">
                         <Link
                             href="/"
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${isActive('/') && !isActive('/admin')
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 ${isActive('/') && !isActive('/admin')
                                 ? 'text-white bg-white/20'
                                 : 'text-white/70 hover:text-white hover:bg-white/10'
                                 }`}
@@ -42,7 +42,7 @@ export default function Navbar() {
                         </Link>
                         <Link
                             href="/admin"
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${isActive('/admin')
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 ${isActive('/admin')
                                 ? 'text-white bg-white/20'
                                 : 'text-white/70 hover:text-white hover:bg-white/10'
                                 }`}

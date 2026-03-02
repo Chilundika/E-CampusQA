@@ -1,0 +1,18 @@
+{
+    "accountAssociation": {
+        "header": "FILL_IN_HEADER",
+        "payload": "FILL_IN_PAYLOAD",
+        "signature": "FILL_IN_SIGNATURE"
+    },
+    "frame": {
+        "version": "1",
+        "name": "CampusQA",
+        "subtitle": "Campus Event Registration",
+        "description": "Register for campus events: Orientations, Tutorials, and Live Q&As.",
+        "iconUrl": "https://chresoqa.vercel.app/logo.png",
+        "splashImageUrl": "https://chresoqa.vercel.app/logo.png",
+        "splashBackgroundColor": "#00A65A",
+        "homeUrl": "https://chresoqa.vercel.app",
+        "imageUrl": "https://chresoqa.vercel.app/logo.png"
+    }
+}
